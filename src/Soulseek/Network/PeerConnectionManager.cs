@@ -281,16 +281,20 @@ namespace Soulseek.Network
 
             try
             {
-                var connection = await MessageConnectionDictionary.GetOrAdd(
+                //var connection = await MessageConnectionDictionary.GetOrAdd(
+                //    r.Username,
+                //    key => new Lazy<Task<IMessageConnection>>(() => GetConnection())).Value.ConfigureAwait(false);
+
+                //if (cached)
+                //{
+                //    Diagnostic.Debug($"Retrieved cached message connection to {r.Username} ({r.IPEndPoint}) (type: {connection.Type}, id: {connection.Id})");
+                //}
+
+                //return connection;
+                return await MessageConnectionDictionary.AddOrUpdate(
                     r.Username,
-                    key => new Lazy<Task<IMessageConnection>>(() => GetConnection())).Value.ConfigureAwait(false);
-
-                if (cached)
-                {
-                    Diagnostic.Debug($"Retrieved cached message connection to {r.Username} ({r.IPEndPoint}) (type: {connection.Type}, id: {connection.Id})");
-                }
-
-                return connection;
+                    new Lazy<Task<IMessageConnection>>(() => GetConnection()),
+                    (key, cachedConnectionRecord) => new Lazy<Task<IMessageConnection>>(() => GetConnection(cachedConnectionRecord))).Value.ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -301,7 +305,7 @@ namespace Soulseek.Network
                 throw new ConnectionException(msg, ex);
             }
 
-            async Task<IMessageConnection> GetConnection()
+            async Task<IMessageConnection> GetConnection(Lazy<Task<IMessageConnection>> cachedConnectionRecord = null)
             {
                 cached = false;
 
@@ -340,6 +344,21 @@ namespace Soulseek.Network
                 }
 
                 Diagnostic.Debug($"Message connection to {r.Username} ({r.IPEndPoint}) established. (type: {connection.Type}, id: {connection.Id})");
+
+                if (cachedConnectionRecord != null)
+                {
+                    try
+                    {
+                        var cachedConnection = await cachedConnectionRecord.Value.ConfigureAwait(false);
+                        cachedConnection.Disconnected -= MessageConnection_Disconnected;
+                        Diagnostic.Debug($"Superseding cached message connection to {r.Username} ({cachedConnection.IPEndPoint}) (old: {cachedConnection.Id}, new: {connection.Id}");
+                    }
+                    catch
+                    {
+                        // noop
+                    }
+                }
+
                 return connection;
             }
         }
