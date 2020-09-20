@@ -63,8 +63,16 @@ namespace Soulseek.Network
         ///     <paramref name="filename"/> and <paramref name="remoteToken"/>.
         /// </summary>
         /// <remarks>
-        ///     After this method is invoked, a <see cref="TransferResponse"/> message with the <paramref name="remoteToken"/>
-        ///     must be sent to the <paramref name="username"/> via a message connection to signal the remote peer to initate the connection.
+        ///     <para>
+        ///         After this method is invoked, a <see cref="TransferResponse"/> message with the <paramref name="remoteToken"/>
+        ///         must be sent to the <paramref name="username"/> via a message connection to signal the remote peer to initate the connection.
+        ///     </para>
+        ///     <para>
+        ///         This method may establish two viable connections.  The calling code will receive only the first connected, and writing the starting offset
+        ///         for the associated transfer to that connection will allow the remote client to determine which connection to use.  When this library is
+        ///         the remote client in this situation, it won't fully negotiate both transfer types; it only writes the token to the first connection established.
+        ///         Other clients may do the same.
+        ///     </para>
         /// </remarks>
         /// <param name="username">The username of the user from which the connection is expected.</param>
         /// <param name="filename">The filename associated with the expected transfer.</param>

@@ -110,7 +110,7 @@ namespace Soulseek.Network
 
             async Task<IMessageConnection> GetConnection(Lazy<Task<IMessageConnection>> cachedConnectionRecord = null)
             {
-                Diagnostic.Debug($"Inbound message connection to {username} ({c.IPEndPoint}) accepted. (type: {c.Type}, id: {c.Id})");
+                Diagnostic.Warning($"Inbound message connection to {username} ({c.IPEndPoint}) accepted. (type: {c.Type}, id: {c.Id})");
 
                 var connection = ConnectionFactory.GetMessageConnection(
                     username,
@@ -126,24 +126,24 @@ namespace Soulseek.Network
 
                 if (cachedConnectionRecord != null)
                 {
-                    if (PendingInboundIndirectConnectionDictionary.TryGetValue(username, out var pendingCts))
-                    {
-                        Diagnostic.Debug($"Cancelling pending inbound indirect message connection to {username}");
-                        pendingCts.Cancel();
-                    }
-                    else
-                    {
+                    //if (PendingInboundIndirectConnectionDictionary.TryGetValue(username, out var pendingCts))
+                    //{
+                    //    Diagnostic.Debug($"Cancelling pending inbound indirect message connection to {username}");
+                    //    pendingCts.Cancel();
+                    //}
+                    //else
+                    //{
                         try
                         {
                             var cachedConnection = await cachedConnectionRecord.Value.ConfigureAwait(false);
                             cachedConnection.Disconnected -= MessageConnection_Disconnected;
-                            Diagnostic.Debug($"Superseding cached message connection to {username} ({cachedConnection.IPEndPoint}) (old: {cachedConnection.Id}, new: {connection.Id}");
+                            Diagnostic.Warning($"Superseding cached message connection to {username} ({cachedConnection.IPEndPoint}) (old: {cachedConnection.Id}, new: {connection.Id}");
                         }
                         catch
                         {
                             // noop
                         }
-                    }
+                    //}
                 }
 
                 connection.StartReadingContinuously();
@@ -198,8 +198,16 @@ namespace Soulseek.Network
         ///     <paramref name="filename"/> and <paramref name="remoteToken"/>.
         /// </summary>
         /// <remarks>
-        ///     After this method is invoked, a <see cref="TransferResponse"/> message with the <paramref name="remoteToken"/>
-        ///     must be sent to the <paramref name="username"/> via a message connection to signal the remote peer to initate the connection.
+        ///     <para>
+        ///         After this method is invoked, a <see cref="TransferResponse"/> message with the <paramref name="remoteToken"/>
+        ///         must be sent to the <paramref name="username"/> via a message connection to signal the remote peer to initate the connection.
+        ///     </para>
+        ///     <para>
+        ///         This method may establish two viable connections.  The calling code will receive only the first connected, and writing the starting offset
+        ///         for the associated transfer to that connection will allow the remote client to determine which connection to use.  When this library is
+        ///         the remote client in this situation, it won't fully negotiate both transfer types; it only writes the token to the first connection established.
+        ///         Other clients may do the same.
+        ///     </para>
         /// </remarks>
         /// <param name="username">The username of the user from which the connection is expected.</param>
         /// <param name="filename">The filename associated with the expected transfer.</param>
@@ -309,7 +317,7 @@ namespace Soulseek.Network
             {
                 cached = false;
 
-                Diagnostic.Debug($"Attempting inbound indirect message connection to {r.Username} ({r.IPEndPoint}) for token {r.Token}");
+                Diagnostic.Warning($"Attempting inbound indirect message connection to {r.Username} ({r.IPEndPoint}) for token {r.Token}");
 
                 var connection = ConnectionFactory.GetMessageConnection(
                     r.Username,
@@ -323,7 +331,7 @@ namespace Soulseek.Network
 
                 using (var cts = new CancellationTokenSource())
                 {
-                    PendingInboundIndirectConnectionDictionary.AddOrUpdate(r.Username, cts, (username, existingCts) => cts);
+                    // PendingInboundIndirectConnectionDictionary.AddOrUpdate(r.Username, cts, (username, existingCts) => cts);
 
                     try
                     {
@@ -331,6 +339,20 @@ namespace Soulseek.Network
 
                         var request = new PierceFirewall(r.Token).ToByteArray();
                         await connection.WriteAsync(request, cts.Token).ConfigureAwait(false);
+
+                        if (cachedConnectionRecord != null)
+                        {
+                            try
+                            {
+                                var cachedConnection = await cachedConnectionRecord.Value.ConfigureAwait(false);
+                                cachedConnection.Disconnected -= MessageConnection_Disconnected;
+                                Diagnostic.Warning($"Superseding cached message connection to {r.Username} ({cachedConnection.IPEndPoint}) (old: {cachedConnection.Id}, new: {connection.Id}");
+                            }
+                            catch
+                            {
+                                // noop
+                            }
+                        }
                     }
                     catch
                     {
@@ -339,26 +361,11 @@ namespace Soulseek.Network
                     }
                     finally
                     {
-                        PendingInboundIndirectConnectionDictionary.TryRemove(r.Username, out _);
+                        // PendingInboundIndirectConnectionDictionary.TryRemove(r.Username, out _);
                     }
                 }
 
                 Diagnostic.Debug($"Message connection to {r.Username} ({r.IPEndPoint}) established. (type: {connection.Type}, id: {connection.Id})");
-
-                if (cachedConnectionRecord != null)
-                {
-                    try
-                    {
-                        var cachedConnection = await cachedConnectionRecord.Value.ConfigureAwait(false);
-                        cachedConnection.Disconnected -= MessageConnection_Disconnected;
-                        Diagnostic.Debug($"Superseding cached message connection to {r.Username} ({cachedConnection.IPEndPoint}) (old: {cachedConnection.Id}, new: {connection.Id}");
-                    }
-                    catch
-                    {
-                        // noop
-                    }
-                }
-
                 return connection;
             }
         }

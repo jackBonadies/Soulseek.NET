@@ -2083,6 +2083,9 @@ namespace Soulseek
 
                 try
                 {
+                    // by this point, under the right circumstances we may have two connections open to the remote client; one established
+                    // indirectly via an incoming ConnectToPeer request, and one established directly via the listener. writing the start offset
+                    // for the transfer to the first established connection will let the remote client know which connection we want to use. the other will time out and disconnect.
                     Diagnostic.Debug($"Seeking download of {Path.GetFileName(download.Filename)} from {username} to starting offset of {startOffset} bytes");
                     var startOffsetBytes = BitConverter.GetBytes(startOffset);
                     await download.Connection.WriteAsync(startOffsetBytes, cancellationToken).ConfigureAwait(false);

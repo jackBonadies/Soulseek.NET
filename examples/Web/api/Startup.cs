@@ -64,12 +64,12 @@
             OutputDirectory = Configuration.GetValue<string>("OUTPUT_DIR");
             SharedDirectory = Configuration.GetValue<string>("SHARED_DIR");
             SharedCacheTTL = Configuration.GetValue<long>("SHARED_CACHE_TTL", 900000); // 15 minutes
-            EnableDistributedNetwork = Configuration.GetValue<bool>("ENABLE_DNET", true);
+            EnableDistributedNetwork = Configuration.GetValue<bool>("ENABLE_DNET", false);
             DistributedChildLimit = Configuration.GetValue<int>("DNET_CHILD_LIMIT", 10);
             DiagnosticLevel = Configuration.GetValue<DiagnosticLevel>("DIAGNOSTIC", DiagnosticLevel.Info);
             ConnectTimeout = Configuration.GetValue<int>("CONNECT_TIMEOUT", 5000);
             InactivityTimeout = Configuration.GetValue<int>("INACTIVITY_TIMEOUT", 15000);
-            EnableSecurity = Configuration.GetValue<bool>("ENABLE_SECURITY", true);
+            EnableSecurity = Configuration.GetValue<bool>("ENABLE_SECURITY", false);
             TokenTTL = Configuration.GetValue<int>("TOKEN_TTL", 86400000); // 24 hours
 
             JwtSigningKey = new SymmetricSecurityKey(PBKDF2.GetKey(Password));
