@@ -2183,7 +2183,7 @@ namespace Soulseek
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>The Task representing the asynchronous operation.</returns>
         /// <exception cref="ArgumentException">
-        ///     Thrown when the <paramref name="username"/> or <paramref name="message"/> is null, empty, or consists only of whitespace.
+        ///     Thrown when the <paramref name="username"/> or <paramref name="message"/> is null or empty.
         /// </exception>
         /// <exception cref="InvalidOperationException">Thrown when the client is not connected or logged in.</exception>
         /// <exception cref="TimeoutException">Thrown when the operation has timed out.</exception>
@@ -2196,9 +2196,9 @@ namespace Soulseek
                 throw new ArgumentException("The username must not be a null or empty string, or one consisting only of whitespace", nameof(username));
             }
 
-            if (string.IsNullOrWhiteSpace(message))
+            if (string.IsNullOrEmpty(message))
             {
-                throw new ArgumentException("The message must not be a null or empty string, or one consisting only of whitespace", nameof(message));
+                throw new ArgumentException("The message must not be a null or empty string", nameof(message));
             }
 
             if (!State.HasFlag(SoulseekClientStates.Connected) || !State.HasFlag(SoulseekClientStates.LoggedIn))
@@ -2217,7 +2217,7 @@ namespace Soulseek
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>The Task representing the asynchronous operation.</returns>
         /// <exception cref="ArgumentException">
-        ///     Thrown when the <paramref name="roomName"/> or <paramref name="message"/> is null, empty, or consists only of whitespace.
+        ///     Thrown when the <paramref name="roomName"/> or <paramref name="message"/> is null or empty.
         /// </exception>
         /// <exception cref="InvalidOperationException">Thrown when the client is not connected or logged in.</exception>
         /// <exception cref="TimeoutException">Thrown when the operation has timed out.</exception>
@@ -2230,9 +2230,9 @@ namespace Soulseek
                 throw new ArgumentException("The room name must not be a null or empty string, or one consisting only of whitespace", nameof(roomName));
             }
 
-            if (string.IsNullOrWhiteSpace(message))
+            if (string.IsNullOrEmpty(message))
             {
-                throw new ArgumentException("The message must not be a null or empty string, or one consisting only of whitespace", nameof(message));
+                throw new ArgumentException("The message must not be a null or empty string", nameof(message));
             }
 
             if (!State.HasFlag(SoulseekClientStates.Connected) || !State.HasFlag(SoulseekClientStates.LoggedIn))
@@ -2286,7 +2286,7 @@ namespace Soulseek
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>The Task representing the asynchronous operation.</returns>
         /// <exception cref="ArgumentException">
-        ///     Thrown when the <paramref name="roomName"/> or <paramref name="message"/> is null, empty, or consists only of whitespace.
+        ///     Thrown when the <paramref name="roomName"/> or <paramref name="message"/> is null or empty.
         /// </exception>
         /// <exception cref="InvalidOperationException">Thrown when the client is not connected or logged in.</exception>
         /// <exception cref="TimeoutException">Thrown when the operation has timed out.</exception>
@@ -2299,9 +2299,9 @@ namespace Soulseek
                 throw new ArgumentException("The room name must not be a null or empty string, or one consisting only of whitespace", nameof(roomName));
             }
 
-            if (string.IsNullOrWhiteSpace(message))
+            if (string.IsNullOrEmpty(message))
             {
-                throw new ArgumentException("The message must not be a null or empty string, or one consisting only of whitespace", nameof(message));
+                throw new ArgumentException("The message must not be a null or empty string", nameof(message));
             }
 
             if (!State.HasFlag(SoulseekClientStates.Connected) || !State.HasFlag(SoulseekClientStates.LoggedIn))
